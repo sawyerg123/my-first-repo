@@ -1,152 +1,504 @@
-<!DOCTYPE html>
+]<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Sawyer G Portfolio</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      font-family: 'Arial', sans-serif;
-      color: #f4f4f4;
-      background: #000;
-      overflow-x: hidden;
-    }
-    .hero {
-      position: relative;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      overflow: hidden;
-    }
-    .hero h1 {
-      font-size: 4rem;
-      margin: 0 0 1rem 0;
-    }
-    .hero p {
-      font-size: 1.2rem;
-      max-width: 600px;
-      margin: 0 auto;
-      line-height: 1.5;
-    }
-    .background {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      z-index: -1;
-      transform: translateY(0);
-      transition: transform 0.2s ease-out;
-    }
-    .projects {
-      padding: 80px 20px;
-      background: #0a0a0a;
-    }
-    .projects h2 {
-      font-size: 2.5rem;
-      margin-bottom: 40px;
-      text-align: center;
-    }
-    .project-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .project-card {
-      background: #111;
-      border-radius: 10px;
-      padding: 30px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      cursor: pointer;
-    }
-    .project-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-    }
-    footer {
-      text-align: center;
-      padding: 40px 20px;
-      background: #010101;
-      font-size: 0.9rem;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sawyer G | UX & HCDD</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050505;
+            --card-bg: #111111;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --accent: #007AFF; /* Apple Blue */
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            cursor: none; /* Hiding default cursor for custom one */
+        }
+
+        /* --- Noise Overlay (Film Grain Texture) --- */
+        .noise {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* --- Custom Cursor --- */
+        .cursor-dot, .cursor-outline {
+            position: fixed;
+            top: 0; left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+        .cursor-dot { width: 8px; height: 8px; background-color: white; }
+        .cursor-outline { width: 40px; height: 40px; border: 1px solid rgba(255,255,255,0.5); transition: width 0.2s, height 0.2s; }
+
+        /* --- Hero Section --- */
+        .hero {
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 0 5vw;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #050505 70%);
+        }
+
+        /* Kinetic Typography Effect */
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 10rem);
+            font-weight: 800;
+            line-height: 0.9;
+            letter-spacing: -0.04em;
+            text-align: center;
+            opacity: 0; /* Hidden for GSAP init */
+            transform: translateY(50px);
+            background: linear-gradient(to bottom, #fff, #666);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            margin-top: 2rem;
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            color: var(--text-muted);
+            max-width: 600px;
+            text-align: center;
+            opacity: 0;
+            line-height: 1.5;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            opacity: 0;
+        }
+
+        /* --- Marquee Section (Scrolling Text) --- */
+        .marquee-container {
+            padding: 100px 0;
+            overflow: hidden;
+            background: var(--bg-color);
+            border-top: 1px solid #222;
+            border-bottom: 1px solid #222;
+        }
+        .marquee-content {
+            white-space: nowrap;
+            display: flex;
+            font-size: 8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: transparent;
+            -webkit-text-stroke: 1px #333;
+        }
+        .marquee-item {
+            padding-right: 50px;
+        }
+
+        /* --- Projects (Bento Grid) --- */
+        .work-section {
+            padding: 100px 5vw;
+        }
+
+        .section-header {
+            font-size: 4rem;
+            margin-bottom: 60px;
+            font-weight: 700;
+        }
+
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-auto-rows: minmax(300px, auto);
+            gap: 20px;
+        }
+
+        /* Grid Spans */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #222;
+            border-radius: 24px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.4s var(--ease), border-color 0.4s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .card:hover {
+            transform: scale(0.98);
+            border-color: #444;
+        }
+
+        .card.large { grid-column: span 8; }
+        .card.medium { grid-column: span 4; }
+        .card.tall { grid-column: span 4; grid-row: span 2; }
+        
+        @media (max-width: 768px) {
+            .card.large, .card.medium, .card.tall { grid-column: span 12; }
+        }
+
+        .card-tag {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .card h3 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .card-visual {
+            margin-top: 20px;
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(45deg, #222, #111);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Simulating UI elements in the card visual */
+        .card-visual::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%; height: 60%;
+            background: #333;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* --- Footer --- */
+        footer {
+            padding: 100px 5vw;
+            border-top: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        
+        .footer-left h2 { font-size: 3rem; margin-bottom: 20px; }
+        .social-link {
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 1.2rem;
+            margin-right: 20px;
+            position: relative;
+        }
+        .social-link::after {
+            content: '';
+            position: absolute;
+            width: 0; height: 1px;
+            bottom: -5px; left: 0;
+            background-color: white;
+            transition: width 0.3s;
+        }
+        .social-link:hover::after { width: 100%; }
+
+    </style>
 </head>
 <body>
-  <div class="hero">
-    <div class="background">
-      <canvas id="particleCanvas"></canvas>
+
+    <div class="noise"></div>
+
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <section class="hero">
+        <div class="hero-bg">
+            <canvas id="heroCanvas" style="position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0.4;"></canvas>
+        </div>
+        
+        <h1 class="hero-title">SAWYER G.</h1>
+        <h1 class="hero-title" style="font-weight: 300; font-style: italic;">PORTFOLIO ©2025</h1>
+        
+        <div class="hero-subtitle">
+            HCDD Student at Penn State.<br>
+            President of Kappa Sigma.<br>
+            Crafting futuristic digital experiences.
+        </div>
+
+        <div class="scroll-indicator">Scroll to Explore</div>
+    </section>
+
+    <div class="marquee-container">
+        <div class="marquee-content">
+            <span class="marquee-item">USER EXPERIENCE — INTERACTION — STRATEGY —</span>
+            <span class="marquee-item">USER EXPERIENCE — INTERACTION — STRATEGY —</span>
+        </div>
     </div>
-    <div class="content">
-      <h1>Hello, I'm Sawyer G</h1>
-      <p>I'm a junior HCDD student at Penn State with a passion for UX design, online marketing and e-commerce. President and founder of Kappa Sigma at Penn State. Explore my work below.</p>
-    </div>
-  </div>
-  <section class="projects">
-    <h2>Selected Projects</h2>
-    <div class="project-grid">
-      <div class="project-card">Project 1 - Coming Soon</div>
-      <div class="project-card">Project 2 - Coming Soon</div>
-      <div class="project-card">Project 3 - Coming Soon</div>
-      <div class="project-card">Project 4 - Coming Soon</div>
-    </div>
-  </section>
-  <footer>© 2025 Sawyer G. All rights reserved.</footer>
-  <script>
-    // particle background animation
-    const canvas = document.getElementById('particleCanvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    function initParticles() {
-      particles = [];
-      const num = 80;
-      for (let i = 0; i < num; i++) {
-        particles.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * 0.5,
-          vy: (Math.random() - 0.5) * 0.5,
-          size: Math.random() * 2 + 1
+
+    <section class="work-section">
+        <h2 class="section-header">Selected Works</h2>
+        
+        <div class="bento-grid">
+            
+            <div class="card large">
+                <div>
+                    <span class="card-tag">UX Research & Design</span>
+                    <h3>IKEA Redesign</h3>
+                    <p>A Human-Centered Design approach to ergonomic office furniture.</p>
+                </div>
+                <div class="card-visual" style="background: linear-gradient(135deg, #0058a3, #ffcc00);"></div>
+            </div>
+
+            <div class="card tall">
+                <div>
+                    <span class="card-tag">Leadership</span>
+                    <h3>Kappa Sigma</h3>
+                    <p>Founding President at PSU. Managed 800+ attendee events and organizational structure.</p>
+                </div>
+                <div class="card-visual" style="height: 300px; background: #222;"></div>
+            </div>
+
+            <div class="card medium">
+                <div>
+                    <span class="card-tag">Development</span>
+                    <h3>Java Systems</h3>
+                    <p>Object-oriented programming structures for scalable data management.</p>
+                </div>
+                <div class="card-visual"></div>
+            </div>
+
+            <div class="card medium">
+                <div>
+                    <span class="card-tag">Networking</span>
+                    <h3>Packet Tracer</h3>
+                    <p>Enterprise network simulation and protocol analysis.</p>
+                </div>
+                <div class="card-visual"></div>
+            </div>
+
+             <div class="card large">
+                <div>
+                    <span class="card-tag">E-Commerce</span>
+                    <h3>Marketing Strategy</h3>
+                    <p>Online marketing campaigns and conversion optimization.</p>
+                </div>
+                <div class="card-visual" style="background: linear-gradient(135deg, #333, #555);"></div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-left">
+            <h2>Let's create<br>the future.</h2>
+            <a href="#" class="social-link">LinkedIn</a>
+            <a href="#" class="social-link">GitHub</a>
+            <a href="#" class="social-link">Email</a>
+        </div>
+        <div class="footer-right">
+            <p>© 2025 Sawyer G.</p>
+            <p>State College, PA</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.29/dist/lenis.min.js"></script>
+
+    <script>
+        // --- 1. SETUP LENIS (The "Apple" Smooth Scroll) ---
+        const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            direction: 'vertical',
+            gestureDirection: 'vertical',
+            smooth: true,
+            mouseMultiplier: 1,
+            smoothTouch: false,
+            touchMultiplier: 2,
+        })
+
+        function raf(time) {
+            lenis.raf(time)
+            requestAnimationFrame(raf)
+        }
+        requestAnimationFrame(raf)
+
+        // --- 2. CUSTOM CURSOR ---
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            // Dot follows instantly
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            // Outline follows with lag (animation in CSS or GSAP)
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
         });
-      }
-    }
-    function drawParticles() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(255,255,255,0.6)';
-      particles.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-      });
-      requestAnimationFrame(drawParticles);
-    }
-    function startParticles() {
-      resizeCanvas();
-      initParticles();
-      drawParticles();
-    }
-    startParticles();
-    // parallax effect on scroll
-    const backgroundDiv = document.querySelector('.background');
-    window.addEventListener('scroll', () => {
-      const scrollPos = window.scrollY;
-      backgroundDiv.style.transform = 'translateY(' + scrollPos * 0.3 + 'px)';
-    });
-  </script>
+
+        // Hover effects for cursor
+        document.querySelectorAll('a, .card').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursorOutline.style.width = '60px';
+                cursorOutline.style.height = '60px';
+                cursorOutline.style.backgroundColor = 'rgba(255,255,255,0.1)';
+            });
+            el.addEventListener('mouseleave', () => {
+                cursorOutline.style.width = '40px';
+                cursorOutline.style.height = '40px';
+                cursorOutline.style.backgroundColor = 'transparent';
+            });
+        });
+
+        // --- 3. GSAP ANIMATIONS ---
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Hero Reveal
+        const tl = gsap.timeline();
+        tl.to('.hero-title', {
+            y: 0,
+            opacity: 1,
+            duration: 1.5,
+            stagger: 0.2,
+            ease: "power4.out"
+        })
+        .to('.hero-subtitle', {
+            opacity: 1,
+            duration: 1,
+            ease: "power2.out"
+        }, "-=1")
+        .to('.scroll-indicator', {
+            opacity: 1,
+            duration: 1
+        }, "-=0.5");
+
+        // Marquee Scroll Effect
+        gsap.to(".marquee-content", {
+            scrollTrigger: {
+                trigger: ".marquee-container",
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 1
+            },
+            xPercent: -20,
+            ease: "none"
+        });
+
+        // Bento Grid Card Reveals
+        gsap.utils.toArray('.card').forEach(card => {
+            gsap.from(card, {
+                scrollTrigger: {
+                    trigger: card,
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
+                },
+                y: 50,
+                opacity: 0,
+                duration: 1,
+                ease: "power3.out"
+            });
+        });
+
+        // --- 4. BACKGROUND PARTICLES (Upgraded) ---
+        // Keeping it lightweight but adding mouse interaction
+        const canvas = document.getElementById('heroCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.size > 0.2) this.size -= 0.01; // twinkle
+                if (this.size <= 0.2) this.size = Math.random() * 2; 
+
+                if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
+                if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < 50; i++) {
+                particles.push(new Particle());
+            }
+        }
+        initParticles();
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+    </script>
 </body>
 </html>
