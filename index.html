@@ -1,115 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sawyer G | UX & HCDD</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Sawyer G | Creative Technologist</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Three.js core -->
+  <script src="https://unpkg.com/three@0.160.1/build/three.min.js"></script>
+  <!-- Postprocessing utilities (CommonJS builds) -->
+  <script src="https://unpkg.com/three@0.160.1/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://unpkg.com/three@0.160.1/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://unpkg.com/three@0.160.1/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://unpkg.com/three@0.160.1/examples/js/postprocessing/UnrealBloomPass.js"></script>
+  <script src="https://unpkg.com/three@0.160.1/examples/js/shaders/RGBShiftShader.js"></script>
+  <!-- GSAP for easing / timing -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+  <!-- dat.GUI for tweaking (optional) -->
+  <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.min.js"></script>
 </head>
 <body>
-
-    <div class="noise"></div>
-
-    <div class="cursor-dot"></div>
-    <div class="cursor-outline"></div>
-
-    <section class="hero">
-        <div class="hero-bg">
-            <canvas id="heroCanvas"></canvas>
-        </div>
-        
-        <h1 class="hero-title">SAWYER G.</h1>
-        <h1 class="hero-title italic">PORTFOLIO ©2025</h1>
-        
-        <div class="hero-subtitle">
-            HCDD Student at Penn State.<br>
-            President of Kappa Sigma.<br>
-            Crafting futuristic digital experiences.
-        </div>
-
-        <div class="scroll-indicator">Scroll to Explore</div>
-    </section>
-
-    <div class="marquee-container">
-        <div class="marquee-content">
-            <span class="marquee-item">USER EXPERIENCE — INTERACTION — STRATEGY —</span>
-            <span class="marquee-item">USER EXPERIENCE — INTERACTION — STRATEGY —</span>
-        </div>
-    </div>
-
-    <section class="work-section">
-        <h2 class="section-header">Selected Works</h2>
-        
-        <div class="bento-grid">
-            <div class="card large">
-                <div>
-                    <span class="card-tag">UX Research & Design</span>
-                    <h3>IKEA Redesign</h3>
-                    <p>A Human-Centered Design approach to ergonomic office furniture.</p>
-                </div>
-                <div class="card-visual visual-blue"></div>
-            </div>
-
-            <div class="card tall">
-                <div>
-                    <span class="card-tag">Leadership</span>
-                    <h3>Kappa Sigma</h3>
-                    <p>Founding President at PSU. Managed 800+ attendee events.</p>
-                </div>
-                <div class="card-visual visual-dark"></div>
-            </div>
-
-            <div class="card medium">
-                <div>
-                    <span class="card-tag">Development</span>
-                    <h3>Java Systems</h3>
-                    <p>OOP structures for scalable data management.</p>
-                </div>
-                <div class="card-visual"></div>
-            </div>
-
-            <div class="card medium">
-                <div>
-                    <span class="card-tag">Networking</span>
-                    <h3>Packet Tracer</h3>
-                    <p>Enterprise network simulation.</p>
-                </div>
-                <div class="card-visual"></div>
-            </div>
-
-             <div class="card large">
-                <div>
-                    <span class="card-tag">E-Commerce</span>
-                    <h3>Marketing Strategy</h3>
-                    <p>Online marketing campaigns and conversion optimization.</p>
-                </div>
-                <div class="card-visual visual-gradient"></div>
-            </div>
-        </div>
-    </section>
-
-    <footer>
-        <div class="footer-left">
-            <h2>Let's create<br>the future.</h2>
-            <a href="#" class="social-link">LinkedIn</a>
-            <a href="#" class="social-link">GitHub</a>
-            <a href="#" class="social-link">Email</a>
-        </div>
-        <div class="footer-right">
-            <p>© 2025 Sawyer G.</p>
-            <p>State College, PA</p>
-        </div>
-    </footer>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script src="https://unpkg.com/@studio-freight/lenis@1.0.29/dist/lenis.min.js"></script>
-    
-    <script src="js/script.js"></script>
+  <!-- Overlay content -->
+  <div id="overlay">
+    <h1 class="name">Sawyer&nbsp;G</h1>
+    <p class="role">HCDD Student &nbsp;&bull;&nbsp; Creative Developer</p>
+  </div>
+  <!-- The WebGL canvas will be injected by Three.js -->
+  <canvas id="webgl"></canvas>
+  <!-- Load the main logic as a module -->
+  <script type="module" src="js/script.js"></script>
 </body>
 </html>
