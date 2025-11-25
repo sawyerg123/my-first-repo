@@ -1,32 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Sawyer G | Creative Technologist</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sawyer G | Portfolio</title>
   <link rel="stylesheet" href="css/style.css">
-  <!-- Three.js core -->
+  <!-- External libs -->
   <script src="https://unpkg.com/three@0.160.1/build/three.min.js"></script>
-  <!-- Postprocessing utilities (CommonJS builds) -->
   <script src="https://unpkg.com/three@0.160.1/examples/js/postprocessing/EffectComposer.js"></script>
   <script src="https://unpkg.com/three@0.160.1/examples/js/postprocessing/RenderPass.js"></script>
-  <script src="https://unpkg.com/three@0.160.1/examples/js/postprocessing/ShaderPass.js"></script>
   <script src="https://unpkg.com/three@0.160.1/examples/js/postprocessing/UnrealBloomPass.js"></script>
+  <script src="https://unpkg.com/three@0.160.1/examples/js/postprocessing/ShaderPass.js"></script>
   <script src="https://unpkg.com/three@0.160.1/examples/js/shaders/RGBShiftShader.js"></script>
-  <!-- GSAP for easing / timing -->
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
-  <!-- dat.GUI for tweaking (optional) -->
   <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.min.js"></script>
 </head>
 <body>
-  <!-- Overlay content -->
-  <div id="overlay">
-    <h1 class="name">Sawyer&nbsp;G</h1>
-    <p class="role">HCDD Student &nbsp;&bull;&nbsp; Creative Developer</p>
-  </div>
-  <!-- The WebGL canvas will be injected by Three.js -->
+  <header id="site-header">
+    <nav>
+      <ul>
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+  <section id="home" class="full-screen">
+    <div class="hero-content">
+      <h1 class="hero-title">Sawyer G</h1>
+      <p class="hero-subtitle">HCDD Student • UX Designer • Creative Developer</p>
+    </div>
+  </section>
+  <section id="about">
+    <div class="container">
+      <h2>About Me</h2>
+      <p>I'm a junior Human-Centered Design & Development student at Penn State with a passion for UX design, online marketing, and e-commerce. I'm the president and founder of the Kappa Sigma fraternity at Penn State.</p>
+      <p>This portfolio showcases my projects, skills, and personality. I love exploring new technologies, motion design, and unique typography to create immersive experiences.</p>
+    </div>
+  </section>
+  <section id="projects">
+    <div class="container">
+      <h2>Projects</h2>
+      <div class="project-grid">
+        <!-- Project placeholders -->
+        <div class="project-card">
+          <h3>Project One</h3>
+          <p>A brief description of project one.</p>
+        </div>
+        <div class="project-card">
+          <h3>Project Two</h3>
+          <p>A brief description of project two.</p>
+        </div>
+        <div class="project-card">
+          <h3>Project Three</h3>
+          <p>A brief description of project three.</p>
+        </div>
+        <!-- Add more projects as needed -->
+      </div>
+    </div>
+  </section>
+  <section id="contact">
+    <div class="container">
+      <h2>Contact</h2>
+      <p>Interested in working together? Feel free to reach out to me at <a href="mailto:example@example.com">example@example.com</a>.</p>
+    </div>
+  </section>
+  <footer>
+    <p>&copy; 2025 Sawyer G. All rights reserved.</p>
+  </footer>
   <canvas id="webgl"></canvas>
-  <!-- Load the main logic as a module -->
-  <script type="module" src="js/script.js"></script>
+  <script src="js/script.js"></script>
 </body>
 </html>
