@@ -1,120 +1,152 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Sawyer G Portfolio</title>
-<style>
-body, html { margin: 0; padding: 0; font-family: Arial, sans-serif; color: #f4f4f4; background: #000; overflow-x: hidden; }
-.hero {
-  position: relative;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: #fff;
-  overflow: hidden;
-}
-.hero h1 { font-size: 4rem; margin: 0; }
-.background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: -1;
-}
-.background canvas { width: 100%; height: 100%; }
-.section { padding: 60px 20px; }
-.section h2 { font-size: 2rem; margin-bottom: 20px; }
-.projects {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 20px;
-}
-.project-card {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 20px;
-  width: 300px;
-  min-height: 200px;
-  transition: transform 0.3s ease, background 0.3s ease;
-}
-.project-card:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.1);
-}
-footer {
-  padding: 20px;
-  text-align: center;
-  background: #111;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>Sawyer G Portfolio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      color: #f4f4f4;
+      background: #000;
+      overflow-x: hidden;
+    }
+    .hero {
+      position: relative;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero h1 {
+      font-size: 4rem;
+      margin: 0 0 1rem 0;
+    }
+    .hero p {
+      font-size: 1.2rem;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+    .background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+      transform: translateY(0);
+      transition: transform 0.2s ease-out;
+    }
+    .projects {
+      padding: 80px 20px;
+      background: #0a0a0a;
+    }
+    .projects h2 {
+      font-size: 2.5rem;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .project-card {
+      background: #111;
+      border-radius: 10px;
+      padding: 30px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+    .project-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    }
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      background: #010101;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 <body>
-<div class="hero">
-  <div class="background">
-    <canvas id="bgCanvas"></canvas>
-  </div>
-  <div>
-    <h1>Hello, I'm Sawyer G</h1>
-    <p>HCDD Junior at Penn State | UX Design & Marketing Enthusiast | President of Kappa Sigma</p>
-  </div>
-</div>
-<section class="section" id="projects">
-  <h2>Projects</h2>
-  <div class="projects">
-    <div class="project-card">
-      <h3>Project 1</h3>
-      <p>Description of project goes here.</p>
+  <div class="hero">
+    <div class="background">
+      <canvas id="particleCanvas"></canvas>
     </div>
-    <div class="project-card">
-      <h3>Project 2</h3>
-      <p>Description of project goes here.</p>
-    </div>
-    <div class="project-card">
-      <h3>Project 3</h3>
-      <p>Description of project goes here.</p>
+    <div class="content">
+      <h1>Hello, I'm Sawyer G</h1>
+      <p>I'm a junior HCDD student at Penn State with a passion for UX design, online marketing and e-commerce. President and founder of Kappa Sigma at Penn State. Explore my work below.</p>
     </div>
   </div>
-</section>
-<footer>
-  &copy; 2025 Sawyer G. All rights reserved.
-</footer>
-<script>
-// interactive background particles
-const canvas = document.getElementById('bgCanvas');
-const ctx = canvas.getContext('2d');
-function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-window.addEventListener('resize', resize);
-resize();
-let circles = [];
-for (let i = 0; i < 60; i++) {
-  circles.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    r: Math.random() * 3 + 1,
-    vx: (Math.random() - 0.5) * 0.5,
-    vy: (Math.random() - 0.5) * 0.5
-  });
-}
-function animate() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
-  circles.forEach(c => {
-    c.x += c.vx;
-    c.y += c.vy;
-    if (c.x < 0 || c.x > canvas.width) c.vx *= -1;
-    if (c.y < 0 || c.y > canvas.height) c.vy *= -1;
-    ctx.beginPath();
-    ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-    ctx.fill();
-  });
-  requestAnimationFrame(animate);
-}
-animate();
-</script>
+  <section class="projects">
+    <h2>Selected Projects</h2>
+    <div class="project-grid">
+      <div class="project-card">Project 1 - Coming Soon</div>
+      <div class="project-card">Project 2 - Coming Soon</div>
+      <div class="project-card">Project 3 - Coming Soon</div>
+      <div class="project-card">Project 4 - Coming Soon</div>
+    </div>
+  </section>
+  <footer>© 2025 Sawyer G. All rights reserved.</footer>
+  <script>
+    // particle background animation
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    function initParticles() {
+      particles = [];
+      const num = 80;
+      for (let i = 0; i < num; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
+          size: Math.random() * 2 + 1
+        });
+      }
+    }
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    function startParticles() {
+      resizeCanvas();
+      initParticles();
+      drawParticles();
+    }
+    startParticles();
+    // parallax effect on scroll
+    const backgroundDiv = document.querySelector('.background');
+    window.addEventListener('scroll', () => {
+      const scrollPos = window.scrollY;
+      backgroundDiv.style.transform = 'translateY(' + scrollPos * 0.3 + 'px)';
+    });
+  </script>
 </body>
 </html>
