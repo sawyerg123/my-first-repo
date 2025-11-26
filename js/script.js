@@ -1,178 +1,336 @@
-// Main Three.js scene with liquid shader effect and post-processing
-const canvas = document.getElementById('webgl');
-const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0x000000, 1.0);
+/**
+ * SAWYER G. PORTFOLIO - CORE ENGINE
+ * * Tech Stack: Three.js, GLSL Shaders, GSAP, Lenis
+ *Features: Liquid Distortion, Raycasting, Post-Processing (Bloom + RGB Shift), Kinetic Type
+ */
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(0, 0, 1.5);
-scene.add(camera);
-
-// Shader code
-const vertexShader = `
-  varying vec2 vUv;
-  uniform float uTime;
-  uniform vec2 uPointer;
-  uniform float uStrength;
-  
-  vec3 mod289(vec3 x) { return x - floor(x / 289.0) * 289.0; }
-  vec4 mod289(vec4 x) { return x - floor(x / 289.0) * 289.0; }
-  vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
-  vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
-  float snoise(vec3 v)
-  {
-    const vec2  C = vec2(1.0/6.0, 1.0/3.0);
-    const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
-    
-    vec3 i  = floor(v + dot(v, C.yyy));
-    vec3 x0 = v - i + dot(i, C.xxx);
-    vec3 g = step(x0.yzx, x0.xyz);
-    vec3 l = 1.0 - g;
-    vec3 i1 = min(g.xyz, l.zxy);
-    vec3 i2 = max(g.xyz, l.zxy);
-    vec3 x1 = x0 - i1 + C.xxx;
-    vec3 x2 = x0 - i2 + C.yyy;
-    vec3 x3 = x0 - D.yyy;
-    
-    i = mod289(i);
-    vec4 p = permute( permute( permute( i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
-           + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))
-           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
-    float n_ = 0.142857142857;
-    vec3  ns = n_ * D.wyz - D.xzx;
-    
-    vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
-    vec4 x_ = floor(j * ns.z);
-    vec4 y_ = floor(j - 7.0 * x_);
-    vec4 x = x_ *ns.x + ns.yyyy;
-    vec4 y = y_ *ns.x + ns.yyyy;
-    vec4 h = 1.0 - abs(x) - abs(y);
-    
-    vec4 b0 = vec4(x.xy, y.xy);
-    vec4 b1 = vec4(x.zw, y.zw);
-    vec4 s0 = floor(b0)*2.0 + 1.0;
-    vec4 s1 = floor(b1)*2.0 + 1.0;
-    vec4 sh = -step(h, vec4(0.0));
-    
-    vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
-    vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
-    
-    vec3 p0 = vec3(a0.xy,h.x);
-    vec3 p1 = vec3(a0.zw,h.y);
-    vec3 p2 = vec3(a1.xy,h.z);
-    vec3 p3 = vec3(a1.zw,h.w);
-    
-    vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
-    p0 *= norm.x;
-    p1 *= norm.y;
-    p2 *= norm.z;
-    p3 *= norm.w;
-    
-    vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
-    m = m * m;
-    return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) );
-  }
-
-  void main() {
-    vUv = uv;
-    vec3 pos = position;
-    float distToMouse = distance(vUv, uPointer);
-    float ripple = sin((distToMouse - uTime * 0.5) * 40.0) * 0.02 / (distToMouse * 5.0 + 0.1);
-    float n = snoise(vec3(pos.xy * 3.0, uTime * 0.2));
-    float disp = n * 0.05 + ripple * uStrength * 5.0 + sin(uTime + pos.x * 5.0) * 0.01;
-    pos.z += disp;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-  }
-`;
-
-const fragmentShader = `
-  precision highp float;
-  varying vec2 vUv;
-  uniform float uTime;
-  uniform float uStrength;
-  
-  vec3 hueShift(vec3 color, float shift) {
-    const mat3 toYIQ = mat3(
-      0.299, 0.587, 0.114,
-      0.596, -0.274, -0.322,
-      0.211, -0.523, 0.312
-    );
-    const mat3 toRGB = mat3(
-      1.0, 0.956, 0.621,
-      1.0, -0.272, -0.647,
-      1.0, -1.107, 1.705
-    );
-    vec3 yiq = toYIQ * color;
-    float hue = atan(yiq.z, yiq.y) + shift;
-    float chroma = sqrt(yiq.y * yiq.y + yiq.z * yiq.z);
-    vec3 result;
-    result.x = yiq.x;
-    result.y = chroma * cos(hue);
-    result.z = chroma * sin(hue);
-    return toRGB * result;
-  }
-
-  void main() {
-    vec3 baseColor = mix(vec3(0.1,0.1,0.15), vec3(0.4,0.4,0.45), vUv.y);
-    float stripes = smoothstep(0.0, 0.01, abs(sin((vUv.y + uTime * 0.1) * 20.0)));
-    baseColor += stripes * 0.1;
-    baseColor = hueShift(baseColor, uTime * 0.1 + uStrength * 0.5);
-    float vignette = smoothstep(1.0, 0.7, distance(vUv, vec2(0.5)));
-    baseColor *= vignette;
-    gl_FragColor = vec4(baseColor, 1.0);
-  }
-`;
-
-const planeGeometry = new THREE.PlaneGeometry(2, 2, 200, 200);
-const uniforms = {
-  uTime: { value: 0 },
-  uPointer: { value: new THREE.Vector2(0.5, 0.5) },
-  uStrength: { value: 0.0 }
+// --- CONFIGURATION ---
+const config = {
+    debug: false,
+    color: {
+        bg: "#050505",
+        mesh: "#111111",
+        light: "#ffffff",
+        accent: "#007AFF"
+    },
+    physics: {
+        tension: 0.5,
+        friction: 0.9,
+        mouseSize: 0.1
+    }
 };
-const material = new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms, side: THREE.DoubleSide });
-const plane = new THREE.Mesh(planeGeometry, material);
-scene.add(plane);
 
-const composer = new THREE.EffectComposer(renderer);
-const renderPass = new THREE.RenderPass(scene, camera);
-composer.addPass(renderPass);
-const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.75, 0.4, 0.85);
-composer.addPass(bloomPass);
-const rgbShiftPass = new THREE.ShaderPass(THREE.RGBShiftShader);
-rgbShiftPass.uniforms['amount'].value = 0.0015;
-composer.addPass(rgbShiftPass);
+// --- CUSTOM POST-PROCESSING SHADERS ---
 
-let lastMouse = new THREE.Vector2(0.5,0.5);
-let pointerVelocity = 0;
-function onMouseMove(event) {
-  const rect = canvas.getBoundingClientRect();
-  const x = (event.clientX - rect.left) / rect.width;
-  const y = (event.clientY - rect.top) / rect.height;
-  const newPos = new THREE.Vector2(x, 1 - y);
-  pointerVelocity = newPos.distanceTo(lastMouse);
-  lastMouse.copy(newPos);
-  uniforms.uPointer.value.copy(newPos);
+// RGB Shift Shader (The "Glitch" Effect)
+const RGBShiftShader = {
+    uniforms: {
+        "tDiffuse": { value: null },
+        "amount": { value: 0.005 },
+        "angle": { value: 0.0 }
+    },
+    vertexShader: `
+        varying vec2 vUv;
+        void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        }`,
+    fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform float amount;
+        uniform float angle;
+        varying vec2 vUv;
+        void main() {
+            vec2 offset = amount * vec2( cos(angle), sin(angle));
+            vec4 cr = texture2D(tDiffuse, vUv + offset);
+            vec4 cga = texture2D(tDiffuse, vUv);
+            vec4 cb = texture2D(tDiffuse, vUv - offset);
+            gl_FragColor = vec4(cr.r, cga.g, cb.b, cga.a);
+        }`
+};
+
+// --- SCENE SHADERS ---
+
+// 1. LIQUID DISTORTION VERTEX SHADER
+const vertexShader = `
+    uniform float uTime;
+    uniform vec2 uMouse;
+    uniform float uHover;
+    varying vec2 vUv;
+    varying float vElevation;
+
+    // Simplex Noise Helper
+    vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+    vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+    vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+    float snoise(vec2 v) {
+        const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+        vec2 i  = floor(v + dot(v, C.yy) );
+        vec2 x0 = v -   i + dot(i, C.xx);
+        vec2 i1;
+        i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+        vec4 x12 = x0.xyxy + C.xxzz;
+        x12.xy -= i1;
+        i = mod289(i);
+        vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 )) + i.x + vec3(0.0, i1.x, 1.0 ));
+        vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+        m = m*m ; m = m*m ;
+        vec3 x = 2.0 * fract(p * C.www) - 1.0;
+        vec3 h = abs(x) - 0.5;
+        vec3 ox = floor(x + 0.5);
+        vec3 a0 = x - ox;
+        m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+        vec3 g;
+        g.x  = a0.x  * x0.x  + h.x  * x0.y;
+        g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+        return 130.0 * dot(m, g);
+    }
+
+    void main() {
+        vUv = uv;
+        vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+        
+        float dist = distance(uMouse, modelPosition.xy);
+        float wave = sin(dist * 10.0 - uTime * 2.0);
+        float activation = smoothstep(0.5, 0.0, dist);
+        
+        float elevation = snoise(vec2(modelPosition.x * 2.0, modelPosition.y * 2.0 + uTime * 0.1));
+        elevation += wave * activation * uHover;
+
+        modelPosition.z += elevation * 0.5;
+        vElevation = elevation;
+
+        vec4 viewPosition = viewMatrix * modelPosition;
+        vec4 projectedPosition = projectionMatrix * viewPosition;
+        gl_Position = projectedPosition;
+    }
+`;
+
+// 2. HOLOGRAPHIC FRAGMENT SHADER
+const fragmentShader = `
+    uniform float uTime;
+    uniform vec3 uColor;
+    varying vec2 vUv;
+    varying float vElevation;
+
+    void main() {
+        vec3 color = uColor;
+        float mixStrength = (vElevation + 0.25) * 2.0;
+        
+        // Dynamic iridescent highlights
+        vec3 highlight = vec3(0.1, 0.5, 1.0); 
+        color = mix(color, highlight, mixStrength);
+
+        // Scanline / Interference
+        float scanline = sin(vUv.y * 80.0 + uTime * 3.0) * 0.05;
+        color += scanline;
+
+        gl_FragColor = vec4(color, 1.0);
+    }
+`;
+
+
+// --- MAIN APP CLASS ---
+
+class PortfolioApp {
+    constructor() {
+        this.container = document.getElementById('webgl-container');
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.mouse = new THREE.Vector2();
+        this.targetMouse = new THREE.Vector2();
+        this.timeSpeed = 1.0; // Modifier for interaction
+        
+        this.init();
+        this.addObjects();
+        this.initPostProcessing(); 
+        this.initScroll();
+        this.addEvents();
+        this.resize();
+        this.render();
+    }
+
+    init() {
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(config.color.bg);
+
+        this.camera = new THREE.PerspectiveCamera(70, this.width / this.height, 0.01, 100);
+        this.camera.position.z = 2;
+
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.renderer.setSize(this.width, this.height);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.container.appendChild(this.renderer.domElement);
+        
+        this.clock = new THREE.Clock();
+    }
+
+    addObjects() {
+        this.geometry = new THREE.PlaneGeometry(3, 3, 128, 128);
+        this.material = new THREE.ShaderMaterial({
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            uniforms: {
+                uTime: { value: 0 },
+                uColor: { value: new THREE.Color(config.color.mesh) },
+                uMouse: { value: new THREE.Vector2(0, 0) },
+                uHover: { value: 0 }
+            },
+            side: THREE.DoubleSide,
+            wireframe: true
+        });
+
+        this.plane = new THREE.Mesh(this.geometry, this.material);
+        this.scene.add(this.plane);
+
+        // Ambient particles
+        const particleGeo = new THREE.BufferGeometry();
+        const count = 2000;
+        const positions = new Float32Array(count * 3);
+        for(let i = 0; i < count * 3; i++) {
+            positions[i] = (Math.random() - 0.5) * 6;
+        }
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const particleMat = new THREE.PointsMaterial({
+            size: 0.005,
+            color: config.color.accent,
+            transparent: true,
+            opacity: 0.6
+        });
+        this.particles = new THREE.Points(particleGeo, particleMat);
+        this.scene.add(this.particles);
+    }
+
+    initPostProcessing() {
+        // NOTE: This relies on the global THREE object and correct script tags in HTML
+        if (typeof THREE.EffectComposer === 'undefined') {
+            console.warn("Post-Processing libraries not loaded. Skipping.");
+            return;
+        }
+
+        this.composer = new THREE.EffectComposer(this.renderer);
+        this.composer.addPass(new THREE.RenderPass(this.scene, this.camera));
+
+        // 1. Bloom Pass (Glow)
+        const bloomPass = new THREE.UnrealBloomPass(
+            new THREE.Vector2(this.width, this.height),
+            1.5, 0.4, 0.85
+        );
+        bloomPass.threshold = 0.2;
+        bloomPass.strength = 0.8; // Glow intensity
+        bloomPass.radius = 0.5;
+        this.composer.addPass(bloomPass);
+
+        // 2. Custom RGB Shift (Glitch)
+        this.rgbShiftPass = new THREE.ShaderPass(RGBShiftShader);
+        this.rgbShiftPass.uniforms['amount'].value = 0.002; // Subtle default
+        this.composer.addPass(this.rgbShiftPass);
+    }
+
+    initScroll() {
+        this.lenis = new Lenis({
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            smooth: true
+        });
+        gsap.ticker.add((time) => {
+            this.lenis.raf(time * 1000);
+        });
+
+        gsap.registerPlugin(ScrollTrigger);
+        
+        // Rotate plane on scroll
+        gsap.to(this.plane.rotation, {
+            scrollTrigger: {
+                trigger: "body",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 1
+            },
+            x: Math.PI / 2, 
+            y: Math.PI / 4
+        });
+        
+        // Text reveals
+        document.querySelectorAll('.reveal-text').forEach(text => {
+            gsap.from(text, {
+                scrollTrigger: { trigger: text, start: "top 80%" },
+                y: 100, opacity: 0, duration: 1.5, ease: "power4.out"
+            });
+        });
+    }
+
+    addEvents() {
+        window.addEventListener('resize', this.resize.bind(this));
+        
+        window.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / this.width) * 2 - 1;
+            const y = -(e.clientY / this.height) * 2 + 1;
+            this.targetMouse.set(x, y);
+
+            const cursor = document.querySelector('.cursor-dot');
+            if(cursor) gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.1 });
+        });
+
+        // Click interaction: Warp speed
+        window.addEventListener('mousedown', () => {
+            gsap.to(this, { timeSpeed: 4.0, duration: 0.5 });
+            if(this.rgbShiftPass) gsap.to(this.rgbShiftPass.uniforms.amount, { value: 0.01, duration: 0.2 });
+        });
+        window.addEventListener('mouseup', () => {
+            gsap.to(this, { timeSpeed: 1.0, duration: 0.5 });
+            if(this.rgbShiftPass) gsap.to(this.rgbShiftPass.uniforms.amount, { value: 0.002, duration: 0.5 });
+        });
+    }
+
+    resize() {
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.renderer.setSize(this.width, this.height);
+        this.camera.aspect = this.width / this.height;
+        this.camera.updateProjectionMatrix();
+        
+        if (this.composer) {
+            this.composer.setSize(this.width, this.height);
+        }
+    }
+
+    render() {
+        const delta = this.clock.getDelta();
+        const elapsedTime = this.clock.getElapsedTime();
+
+        this.mouse.lerp(this.targetMouse, 0.1);
+
+        // Update Shader Uniforms
+        this.material.uniforms.uTime.value += delta * this.timeSpeed; // Use modified speed
+        this.material.uniforms.uMouse.value = this.mouse;
+
+        // Hover intensity logic
+        const dist = this.mouse.length();
+        const targetHover = dist < 0.5 ? 1.0 : 0.0;
+        const currentHover = this.material.uniforms.uHover.value;
+        this.material.uniforms.uHover.value += (targetHover - currentHover) * 0.05;
+
+        // Particles rotation
+        this.particles.rotation.y = elapsedTime * 0.05;
+
+        // Render via Composer if available, else standard
+        if (this.composer) {
+            this.composer.render();
+        } else {
+            this.renderer.render(this.scene, this.camera);
+        }
+        
+        requestAnimationFrame(this.render.bind(this));
+    }
 }
-window.addEventListener('mousemove', onMouseMove);
 
-window.addEventListener('resize', () => {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  renderer.setSize(w, h);
-  composer.setSize(w, h);
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
+// --- INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    // We check for Three.js. If Post-Processing libs aren't loaded, initPostProcessing handles it gracefully.
+    if (typeof THREE !== 'undefined' && typeof gsap !== 'undefined') {
+        new PortfolioApp();
+    } else {
+        console.error("Critical: Three.js or GSAP not loaded.");
+    }
 });
-
-const clock = new THREE.Clock();
-function animate() {
-  const elapsed = clock.getElapsedTime();
-  uniforms.uTime.value = elapsed;
-  uniforms.uStrength.value += (pointerVelocity * 5.0 - uniforms.uStrength.value) * 0.1;
-  pointerVelocity *= 0.9;
-  composer.render();
-  requestAnimationFrame(animate);
-}
-animate();
